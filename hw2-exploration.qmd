@@ -102,3 +102,23 @@ ggplot(na.omit(kelp), aes(x = year, y = kelp_area_m2, color = region)) +
 3. What challenges do you foresee encountering with your data? These can be data wrangling and / or visualization challenges.
 
 *I think the above visualizations I made come close to being helpful plots about my data, but fall just a little short. I think that appropriately binned histograms will be helpful, and will probably make those next. I forsee challenges with the spatial nature of my data - because it is geospatial data, but also because the points of data are divided, kind of, by region, per year, and per time. I think to make any cool analysis, I will have to take into account both the spatial and temporal nature of my data, which is proving to be a bit more challenging to personally visualize than anticipated.*
+
+```{r}
+heatwave_kelp <- kelp |>
+  filter(year %in% 2010:2020)
+```
+
+```{r}
+ggplot(na.omit(heatwave_kelp), aes(x = year, y = count_cells_kelp, color = region, group = region)) +
+  geom_line(size = 1.2) +  # Increase line thickness
+  theme_bw() +
+  scale_color_manual(values = pal_d) + 
+  labs(title = "Kelp Cover (m²) in CA over Time",
+       x = "Year",
+       y = "Kelp Cover (m²)",
+       color = "Region")  # Legend titlez
+```
+
+
+
+
