@@ -1,0 +1,103 @@
+---
+title: "your HW #2 title"
+author: "Bailey Jørgensen"
+date: 2024-02-04
+format:
+  html:
+    code-fold: true
+    embed-resources: true # this ensures that your rendered .html file is self-contained, so we (your instructors) can open it and view all your work
+---
+
+```{r}
+#| eval: true
+#| echo: false
+#| warning: false
+
+# Load libraries
+library(tidyverse)
+library(here)
+library(janitor)
+library(paletteer)
+```
+
+```{r}
+#| eval: true
+#| echo: false
+#| warning: false
+# Read in data
+kelp_central <- read_csv(here("data", "central_california_kelp.csv"))
+kelp_north <- read_csv(here("data", "northern_california_kelp.csv"))
+kelp_south <- read_csv(here("data", "southern_california_kelp.csv"))
+```
+
+```{r}
+#| eval: true
+#| echo: true
+#| warning: false
+#| message: false
+
+# Add a column to each df that specifies its region
+kelp_central <- kelp_central %>% mutate(region = "central")
+kelp_north <- kelp_north %>% mutate(region = "northern")
+kelp_south <- kelp_south %>% mutate(region = "southern")
+
+# Bind the three dfs together
+kelp <- bind_rows(kelp_central, kelp_north, kelp_south)
+
+
+```
+
+# Viz #1: 
+
+```{r}
+#| eval: true
+#| echo: true
+#| warning: false
+#| message: false
+
+# Create palette 
+pal_d <- paletteer_d("wesanderson::GrandBudapest1", n=3)
+
+
+# Make a histogram
+ggplot(kelp, aes(x = kelp_area_m2, fill = region)) +
+  geom_histogram() +
+  scale_fill_manual(values = pal_d) +
+  labs(title = "California Kelps") +
+  theme_bw()
+```
+# Viz #2:
+
+```{r}
+ggplot(na.omit(kelp), aes(x = year, y = kelp_area_m2, color = region, group = region)) +
+  geom_line(size = 1.2) +  # Increase line thickness
+  theme_bw() +
+  scale_color_manual(values = pal_d) + 
+  labs(title = "Kelp Cover (m²) in CA over Time",
+       x = "Year",
+       y = "Kelp Cover (m²)",
+       color = "Region")  # Legend title
+
+```
+# Viz #3:
+
+```{r}
+ggplot(na.omit(kelp), aes(x = year, y = kelp_area_m2, color = region)) +
+  geom_point(size = 4, alpha = 0.8) +
+  scale_color_manual(values=pal_d) +
+  theme_bw()
+```
+
+
+# Reflections:
+1. What have you learned about your data? Have any potentially interesting patterns emerged?
+
+*I have learned that I have a lot of data points, spaning a lot of regions and times, and this makes visualizing trends a bit tricky. I thought that removing NAs would help clear things up a bit, and I think it did, but not as much as I hoped.*
+
+2. In HW #1, you outlined some questions that you wanted to answer using these data. Have you made any strides towards answering those questions? If yes, how so? If no, what next steps do you need to take (e.g. I need to create X plot type, I still need to track down Y data, I need to restructure existing data so that you can visualize it in Z ways, etc.)?
+
+*I realized that geometry data is missing from my datasets. I have access to this data through my capstone project client, and am currently waiting for her to send it to me. I think that introducing geospatial data into these analysis will be helpful and enlightening.* 
+
+3. What challenges do you foresee encountering with your data? These can be data wrangling and / or visualization challenges.
+
+*I think the above visualizations I made come close to being helpful plots about my data, but fall just a little short. I think that appropriately binned histograms will be helpful, and will probably make those next. I forsee challenges with the spatial nature of my data - because it is geospatial data, but also because the points of data are divided, kind of, by region, per year, and per time. I think to make any cool analysis, I will have to take into account both the spatial and temporal nature of my data, which is proving to be a bit more challenging to personally visualize than anticipated.*
