@@ -1,5 +1,5 @@
 ---
-title: "your HW #2 title"
+title: "HW #2: Let's look at these California Kelps"
 author: "Bailey Jørgensen"
 date: 2024-02-04
 format:
@@ -85,6 +85,7 @@ ggplot(na.omit(kelp), aes(x = year, y = kelp_area_m2, color = region, group = re
 ggplot(na.omit(kelp), aes(x = year, y = kelp_area_m2, color = region)) +
   geom_point(size = 4, alpha = 0.8) +
   scale_color_manual(values=pal_d) +
+  labs(title = "Califoria Kelp over Time") +
   theme_bw()
 ```
 
