@@ -29,12 +29,9 @@ editor: visual
 
 *I really love this graph, from the datavizproject.com website. I love how it shows area over time, but the disconnect between the colors gives it an airier, more dynamic feel. I think in attempting to replicate it, however, I will choose colors that make the differences between the streams a little more obvious. I will also do area over latitude, instead of time, in order to give a feel for variation in kelp cover across the state (theoretically...)*
 
-![](data/Pictorial-Fraction-Chart-1-1.png){fig-alt="image of a person silouette, with a percentage line through it, to visualize a percentage of something.}
-*This viz from the datavizproject is simple, but is honestly a great example of what I want to try too, but with a piece of kelp. I have a feeling I'll have to get a little artsy with this one, but I want to try anyway. Obviously, in my final viz, I will have more text and a title that explains what is actually happening here.*
+![](data/Pictorial-Fraction-Chart-1-1.png){fig-alt="image of a person silhouette, with a percentage line through it, to visualize a percentage of something.} *This viz from the datavizproject.com is simple, but is honestly a great example of what I want to try too, but with a piece of kelp. I have a feeling I'll have to get a little artsy with this one, but I want to try anyway. Obviously, in my final viz, I will have more text and a title that explains what is actually happening here.*
 
-![](data/README-example-map-1.png){fig-alt="Picture of a map of the United States, with Texas colored in a different color, and also magnified in a separate cut-out}
-*This viz is from hughjonesd.github.io/ggmagnify, and is a simple but cool example of what I am hoping to achieve. I like that Texas is both colored brightly, and also magnified, though I think the starkness of the red makes the smaller Texas stand out a little too much. But, I like the dotted lines that connect the magnify, and the way that the original map is still clear and readable, despite the cutout.*
-
+![](data/README-example-map-1.png){fig-alt="Picture of a map of the United States, with Texas colored in a different color, and also magnified in a separate cut-out} *This viz is from hughjonesd.github.io/ggmagnify, and is a simple but cool example of what I am hoping to achieve. I like that Texas is both colored brightly, and also magnified, though I think the starkness of the red makes the smaller Texas stand out a little too much. But, I like the dotted lines that connect the magnify, and the way that the original map is still clear and readable, despite the cutout.*
 
 5.  Hand-draw your anticipated visualizations, then take a photo of your drawing(s) and embed it in your rendered .qmd file – note that these are not exploratory visualizations, but rather your plan for your final visualizations that you will eventually polish and submit with HW #4. You should have:
 
@@ -66,15 +63,14 @@ c.  What feedback do you need from the instructional team and / or your peers to
 librarian::shelf(tidyverse, tidync, sf, rnaturalearth, terra, tmap, tmaptools, spData, spDataLarge, mapdata, RColorBrewer, ggmagnify, grid)
 ```
 
-## OK gonna pivot to a map thing for now to try and get something turned in for discussion.... we'll see
+*Here is the code and output for my first viz, the map! It is still very rough...I am still struggling with getting the dotted lines on the plot, and am still having some issues with mapping out the kelp data.*
 
 ```{r}
 #| eval: true
 #| echo: false
-mpa_boundaries <- sf::st_read(here("data", "MPA_boundaries", "California_Marine_Protected_Areas_[ds582].shp"))
-```
 
-```{r}
+# Read in data for MPA boundaries
+mpa_boundaries <- sf::st_read(here("data", "MPA_boundaries", "California_Marine_Protected_Areas_[ds582].shp"))
 
 # Base map with MPAs and US states
 rough_mpa <- tm_shape(mpa_boundaries) +
@@ -103,47 +99,57 @@ print(inset_map, vp = vp)
 
 ```
 
+*OK, this one might be a stretch. My idea was to use fake data and create a plot in void theme, and make the fake plot look like kelp for the pictograph visualization. However, I can't seem to make the plot look exactly how I want, and I don't think I'm able to fully remove the look of the fake data, which makes me nervous for misinformation. My next move would be to use photoshop instead, and use a pixel measuring method to determine where the percentage line should fall. However, I am worried that that is pushing the definition of a data science visualization a little too far...So I may pivot into a different type of viz, though I am struggling to find other visualizations that show a single percentage point in a way that it fun...Let me know what you think!*
+
 ```{r}
-bathy_200 <- rast(here("data", "bathy_coral_200m.tif"))
+
+# create a FAKE dataset that mimicks the look of kelp
+data <- data.frame(
+  name=c( rep("A",500), rep("B",500), rep("B",500), rep("C",20), rep('D', 100)  ),
+  value=c( rnorm(500, 10, 5), rnorm(500, 13, 1), rnorm(500, 18, 1), rnorm(20, 25, 4), rnorm(100, 12, 1) )
+)
+
+# FIlter the data to get the violin I like the look of the best
+data_b <- data |>
+  filter(name == "B")
+
+# Calculate 17th percentile
+p17 <- quantile(data_b$value, probs = 0.17)
+
+# Make a violin chart, eliminating all clues of the fake data
+p <- ggplot(data_b, aes(x=name, y=value, fill=name)) +
+  geom_violin(color = "black", fill = "seagreen",
+              adjust = 1) +
+  geom_hline(yintercept = p17, linetype = "dashed", color = "coral") +  # Add percentile line
+  annotate("text", x = 1.1, y = p17, label = "17%", color = "coral", hjust = 0.2) +  # Label it
+  theme_void() +
+  theme(legend.position = "none") +
+  labs(title = "Percentage of Emergent Kelp Coverage Protected Within California MPAs",
+       subtitle = "Percentage calculated as of 2024",
+       caption = "data from KelpWatch.org")
+
+
+p
 ```
 
 ```{r}
-crs(bathy_200) == crs(mpa_boundaries)
-
-# Match CRS
-mpa_boundaries <- st_transform(mpa_boundaries, crs = st_crs(bathy_200))
-
+# Library
+library(streamgraph)
+ 
+# Create data:
+data <- data.frame(
+  year=rep(seq(1990,2016) , each=10),
+  name=rep(letters[1:10] , 27),
+  value=sample( seq(0,1,0.0001) , 270)
+)
+ 
+# Stream graph with a legend
+pp <- streamgraph(data, key="name", value="value", date="year", height="300px", width="1000px") %>%
+  sg_legend(show=TRUE, label="names: ")
 ```
 
-```{r}
-crs(bathy_200) == crs(mpa_boundaries)
-```
-
-```{r}
-combined_bb <- st_bbox(st_union(st_as_sfc(st_bbox(bathy_200)), 
-                               st_as_sfc(st_bbox(mpa_boundaries))))
-
-bathy200_light <- tm_shape(bathy_200, bbox = combined_bb) +
-  tm_raster(style = "equal", n = 6,
-            palette = get_brewer_pal("Blues", n = 12, plot = FALSE),
-            title = "Bathymetry (meters)") +
-  tm_layout(legend.outside = TRUE) +
-  tm_shape(mpa_boundaries) +
-  tm_polygons(col = "hotpink")
 
 
-# bathy200_dark <- tm_shape(bathy_200) +
-#     tm_raster(style = "equal", n = 6,
-#             palette = get_brewer_pal("Blues", n = 12, plot = FALSE),
-#             title = "Bathymetry (meters)",
-#             colorNA = "black"
-#             ) +
-#   tm_layout(legend.outside = TRUE)
 
-bathy200_light 
-```
 
-```{r}
-print(st_crs(bathy_200))
-print(st_crs(mpa_boundaries))
-```
+
