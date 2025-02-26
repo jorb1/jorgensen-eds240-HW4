@@ -69,7 +69,7 @@ ggplot(kelp, aes(x = kelp_area_m2, fill = region)) +
 # Viz #2:
 
 ```{r}
-ggplot(na.omit(kelp), aes(x = year, y = kelp_area_m2, color = region, group = region)) +
+ggplot(na.omit(kelp), aes(x = year, y = log1p(kelp_area_m2), color = region, group = region)) +
   geom_line(size = 1.2) +  # Increase line thickness
   theme_bw() +
   scale_color_manual(values = pal_d) + 
