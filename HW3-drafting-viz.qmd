@@ -25,9 +25,22 @@ editor: visual
 
 4.  In HW #2, you created some exploratory data viz to better understand your data. You may already have some ideas of how you plan to formally visualize your data, but it’s incredibly helpful to look at visualizations by other creators for inspiration. Find at least two data visualizations that you could (potentially) borrow / adapt pieces from. Link to them or download and embed them into your .qmd file, and explain which elements you might borrow (e.g. the graphic form, legend design, layout, etc.).
 
+![](data/Sorted-Stream-Graph.png){fig-alt="Image of a sorted stream graph, from the dataviz project website, that demonstrates how it shows varying areas over time"}
+
+*I really love this graph, from the datavizproject.com website. I love how it shows area over time, but the disconnect between the colors gives it an airier, more dynamic feel. I think in attempting to replicate it, however, I will choose colors that make the differences between the streams a little more obvious. I will also do area over latitude, instead of time, in order to give a feel for variation in kelp cover across the state (theoretically...)*
+
+![](data/Pictorial-Fraction-Chart-1-1.png){fig-alt="image of a person silouette, with a percentage line through it, to visualize a percentage of something.}
+*This viz from the datavizproject is simple, but is honestly a great example of what I want to try too, but with a piece of kelp. I have a feeling I'll have to get a little artsy with this one, but I want to try anyway. Obviously, in my final viz, I will have more text and a title that explains what is actually happening here.*
+
+![](data/README-example-map-1.png){fig-alt="Picture of a map of the United States, with Texas colored in a different color, and also magnified in a separate cut-out}
+*This viz is from hughjonesd.github.io/ggmagnify, and is a simple but cool example of what I am hoping to achieve. I like that Texas is both colored brightly, and also magnified, though I think the starkness of the red makes the smaller Texas stand out a little too much. But, I like the dotted lines that connect the magnify, and the way that the original map is still clear and readable, despite the cutout.*
+
+
 5.  Hand-draw your anticipated visualizations, then take a photo of your drawing(s) and embed it in your rendered .qmd file – note that these are not exploratory visualizations, but rather your plan for your final visualizations that you will eventually polish and submit with HW #4. You should have:
 
 -   a sketch of your infographic (which should include at least three component visualizations) if you are pursuing option 1
+
+![](data/viz-mockup.png){fig-alt="Image of kelp-based data viz mockups. Hand-drawn - forgive the ugliness!"}
 
 6.  Mock up all of your hand drawn visualizations using code. We understand that you will continue to iterate on these into HW #4 (particularly after receiving feedback), but by the end of HW #3, you should:
 
@@ -39,10 +52,11 @@ editor: visual
 
 7.  Answer the following questions:
 
+<!-- -->
+
 a.  What challenges did you encounter or anticipate encountering as you continue to build / iterate on your visualizations in R? If you struggled with mocking up any of your three visualizations (from #6, above), describe those challenges here.
 b.  What ggplot extension tools / packages do you need to use to build your visualizations? Are there any that we haven’t covered in class that you’ll be learning how to use for your visualizations?
 c.  What feedback do you need from the instructional team and / or your peers to ensure that your intended message is clear?
-
 
 ```{r}
 #| eval: true
@@ -52,7 +66,6 @@ c.  What feedback do you need from the instructional team and / or your peers to
 librarian::shelf(tidyverse, tidync, sf, rnaturalearth, terra, tmap, tmaptools, spData, spDataLarge, mapdata, RColorBrewer, ggmagnify, grid)
 ```
 
-
 ## OK gonna pivot to a map thing for now to try and get something turned in for discussion.... we'll see
 
 ```{r}
@@ -60,8 +73,6 @@ librarian::shelf(tidyverse, tidync, sf, rnaturalearth, terra, tmap, tmaptools, s
 #| echo: false
 mpa_boundaries <- sf::st_read(here("data", "MPA_boundaries", "California_Marine_Protected_Areas_[ds582].shp"))
 ```
-
-
 
 ```{r}
 
@@ -92,8 +103,6 @@ print(inset_map, vp = vp)
 
 ```
 
-
-
 ```{r}
 bathy_200 <- rast(here("data", "bathy_coral_200m.tif"))
 ```
@@ -105,10 +114,10 @@ crs(bathy_200) == crs(mpa_boundaries)
 mpa_boundaries <- st_transform(mpa_boundaries, crs = st_crs(bathy_200))
 
 ```
+
 ```{r}
 crs(bathy_200) == crs(mpa_boundaries)
 ```
-
 
 ```{r}
 combined_bb <- st_bbox(st_union(st_as_sfc(st_bbox(bathy_200)), 
@@ -138,5 +147,3 @@ bathy200_light
 print(st_crs(bathy_200))
 print(st_crs(mpa_boundaries))
 ```
-
-
