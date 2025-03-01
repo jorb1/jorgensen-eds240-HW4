@@ -49,11 +49,19 @@ editor: visual
 
 7.  Answer the following questions:
 
-<!-- -->
+8.  What challenges did you encounter or anticipate encountering as you continue to build / iterate on your visualizations in R? If you struggled with mocking up any of your three visualizations (from #6, above), describe those challenges here.
 
-a.  What challenges did you encounter or anticipate encountering as you continue to build / iterate on your visualizations in R? If you struggled with mocking up any of your three visualizations (from #6, above), describe those challenges here.
-b.  What ggplot extension tools / packages do you need to use to build your visualizations? Are there any that we haven’t covered in class that you’ll be learning how to use for your visualizations?
-c.  What feedback do you need from the instructional team and / or your peers to ensure that your intended message is clear?
+  *I have been struggling with two main issues - the first being that the KelpWatch dataset that I have is a huge geospatial .nc file, which was not gridded in a way I was familiar with. So, I had to do some wrangling of the kelp data, with the kelp of my capstone client. With her help, I was able to export the 2024 data from the set into a separate .tif file, which made it more manageable, as it filtered out the years I was not interested in for this particular analysis. This was, however, very time consuming. I have not included the code to export the tif here, since its super long and not exactly relevant to the creation of the viz itself, but I can provide it as needed.*
+
+  *The second issue I've been having is that the package for the sorted stream graph I was planning on making is not compatible with more recent versions of R. So, I have been trying to think of another way of making it with a different package, or just in ggplot. However, I have not been successful yet, so there is a good chance that I will have to come up with a different visualization...which is fine, but I've been stubborn about it!*
+
+9.  What ggplot extension tools / packages do you need to use to build your visualizations? Are there any that we haven’t covered in class that you’ll be learning how to use for your visualizations?
+
+*Well, its the streamgraph library that I was planning on using, but has since been depreciated. There is also a ggmagnify package that I was planning on using for the map visuzalization, but I ended up not going with it, and instead just playing around with layering maps, using tmaps and ggplot. So far I am not happy with the effect, but was able to get further doing it that way, than I was with the package.*
+
+10. What feedback do you need from the instructional team and / or your peers to ensure that your intended message is clear?
+
+*I want to make sure that my viz clearly explains the state of kelp coverage today, and its relationship to MPAs. I am worried that at this point, by visuzalizations are too simplistic, but I am hoping they will continue to improve until the message is clear*
 
 ```{r}
 #| eval: true
@@ -63,7 +71,7 @@ c.  What feedback do you need from the instructional team and / or your peers to
 librarian::shelf(tidyverse, tidync, here, sf, rnaturalearth, terra, tmap, tmaptools, spData, spDataLarge, mapdata, RColorBrewer, ggmagnify, grid)
 ```
 
-*Here is the code and output for my first viz, the map! It is still very rough...I am still struggling with getting the dotted lines on the plot, and am still having some issues with mapping out the kelp data.*
+*Here is the code and output for my first viz, the map! It is still very rough...I am still struggling with getting the dotted lines on the plot, and am still having some issues with mapping out the kelp data in the small zoomed in plot.*
 
 ```{r}
 #| eval: true
@@ -74,7 +82,7 @@ mpa_boundaries <- sf::st_read(here("data", "MPA_boundaries", "California_Marine_
 
 # Base map with MPAs and US states
 rough_mpa <- tm_shape(mpa_boundaries) +
-  tm_polygons(col = "hotpink") +
+  tm_polygons(col = "#71722b") +
   tm_shape(us_states) +
   tm_polygons(alpha = .10) +
   tm_layout(main.title = "California MPAs",
@@ -98,8 +106,13 @@ print(inset_map, vp = vp)
 
 
 ```
+*Here is my second visualization. It is simple, but I feel like I need a visualization that shows the single percentage of kelp protected within MPAs, since that is a big main take away of the viz in general, and I think that showing it will make sure the message is conveyed.*
+
 
 ![](data/viz2-eds240.png){fig-alt="An image of a kelp frond, with a line indicating the 17% mark on the image, stating that 17% of kelp lives within California MPAs"}
+
+
+*Here is the code for the streamgraph...as I said, the package is not working as intended. I haven't given up on the stream graph concept quite yet, so I am still fiddling with it, and hope to actually have a rendered output soon...*
 
 ```{r}
 # Library
@@ -116,3 +129,4 @@ data <- data.frame(
 pp <- streamgraph(data, key="name", value="value", date="year", height="300px", width="1000px") %>%
   sg_legend(show=TRUE, label="names: ")
 ```
+
