@@ -51,9 +51,9 @@ editor: visual
 
 8.  What challenges did you encounter or anticipate encountering as you continue to build / iterate on your visualizations in R? If you struggled with mocking up any of your three visualizations (from #6, above), describe those challenges here.
 
-  *I have been struggling with two main issues - the first being that the KelpWatch dataset that I have is a huge geospatial .nc file, which was not gridded in a way I was familiar with. So, I had to do some wrangling of the kelp data, with the kelp of my capstone client. With her help, I was able to export the 2024 data from the set into a separate .tif file, which made it more manageable, as it filtered out the years I was not interested in for this particular analysis. This was, however, very time consuming. I have not included the code to export the tif here, since its super long and not exactly relevant to the creation of the viz itself, but I can provide it as needed.*
+*I have been struggling with two main issues - the first being that the KelpWatch dataset that I have is a huge geospatial .nc file, which was not gridded in a way I was familiar with. So, I had to do some wrangling of the kelp data, with the kelp of my capstone client. With her help, I was able to export the 2024 data from the set into a separate .tif file, which made it more manageable, as it filtered out the years I was not interested in for this particular analysis. This was, however, very time consuming. I have not included the code to export the tif here, since its super long and not exactly relevant to the creation of the viz itself, but I can provide it as needed.*
 
-  *The second issue I've been having is that the package for the sorted stream graph I was planning on making is not compatible with more recent versions of R. So, I have been trying to think of another way of making it with a different package, or just in ggplot. However, I have not been successful yet, so there is a good chance that I will have to come up with a different visualization...which is fine, but I've been stubborn about it!*
+*The second issue I've been having is that the package for the sorted stream graph I was planning on making is not compatible with more recent versions of R. So, I have been trying to think of another way of making it with a different package, or just in ggplot. However, I have not been successful yet, so there is a good chance that I will have to come up with a different visualization...which is fine, but I've been stubborn about it!*
 
 9.  What ggplot extension tools / packages do you need to use to build your visualizations? Are there any that we haven’t covered in class that you’ll be learning how to use for your visualizations?
 
@@ -66,9 +66,10 @@ editor: visual
 ```{r}
 #| eval: true
 #| echo: false
+#| warning: false
 
 # Load libraries
-librarian::shelf(tidyverse, tidync, here, sf, rnaturalearth, terra, tmap, tmaptools, spData, spDataLarge, mapdata, RColorBrewer, ggmagnify, grid)
+librarian::shelf(tidyverse, tidync, here, sf, rnaturalearth, terra, tmap, tmaptools, spData, spDataLarge, mapdata, RColorBrewer, ggmagnify, grid, paletteer)
 ```
 
 *Here is the code and output for my first viz, the map! It is still very rough...I am still struggling with getting the dotted lines on the plot, and am still having some issues with mapping out the kelp data in the small zoomed in plot.*
@@ -79,7 +80,9 @@ librarian::shelf(tidyverse, tidync, here, sf, rnaturalearth, terra, tmap, tmapto
 
 # Read in data for MPA boundaries
 mpa_boundaries <- sf::st_read(here("data", "MPA_boundaries", "California_Marine_Protected_Areas_[ds582].shp"))
+```
 
+```{r}
 # Base map with MPAs and US states
 rough_mpa <- tm_shape(mpa_boundaries) +
   tm_polygons(col = "#71722b") +
@@ -106,27 +109,44 @@ print(inset_map, vp = vp)
 
 
 ```
-*Here is my second visualization. It is simple, but I feel like I need a visualization that shows the single percentage of kelp protected within MPAs, since that is a big main take away of the viz in general, and I think that showing it will make sure the message is conveyed.*
 
+*Here is my second visualization. It is simple, but I feel like I need a visualization that shows the single percentage of kelp protected within MPAs, since that is a big main take away of the viz in general, and I think that showing it will make sure the message is conveyed.*
 
 ![](data/viz2-eds240.png){fig-alt="An image of a kelp frond, with a line indicating the 17% mark on the image, stating that 17% of kelp lives within California MPAs"}
 
+*Since my stream graph is falling through, I'm scrambling a bit to find something different. Even though for the main viz I'm only interested in the year 2024, I did want to think of a way to visualize the changing seasons, and how variable kelp coverage is throughout a year, since it is so season dependent. So, I made this line chart, based on the viz I made for homework 2. I think its close to telling the story that I want it too, but I want to keep fiddling with it. Also, I have to decide how it will fit into my vision of the final infographic, as opposed to the stream graph.*
 
-*Here is the code for the streamgraph...as I said, the package is not working as intended. I haven't given up on the stream graph concept quite yet, so I am still fiddling with it, and hope to actually have a rendered output soon...*
+```{r}
+# Read in csv 
+north_kelp <- read_csv(here("data", "northern_california_kelp.csv"))
+
+north_plot <- ggplot(na.omit(north_kelp), aes(x = year, y = log1p(kelp_area_m2), color = quarter, group = quarter)) +
+  geom_line(size = 1.2) +  # Increase line thickness
+  theme_bw() +
+  scale_color_manual(values = c("#6C568CFF", "#9386A6FF", "#BFCDD9FF", "#7F8C72FF", "#607345FF")) + 
+  labs(title = "Kelp Cover (m²) in CA over Time",
+       x = "Year",
+       y = "Kelp Cover (m²)",
+       color = "Season")  # Legend title
+
+north_plot
+
+```
+
+*Here is the code for the streamgraph...as I said, the package is not working as intended. I haven't given up on the stream graph concept quite yet, so I am still fiddling with it..*
 
 ```{r}
 # Library
-library(streamgraph)
- 
-# Create data:
-data <- data.frame(
-  year=rep(seq(1990,2016) , each=10),
-  name=rep(letters[1:10] , 27),
-  value=sample( seq(0,1,0.0001) , 270)
-)
- 
-# Stream graph with a legend
-pp <- streamgraph(data, key="name", value="value", date="year", height="300px", width="1000px") %>%
-  sg_legend(show=TRUE, label="names: ")
+# library(streamgraph)
+#  
+# # Create data:
+# data <- data.frame(
+#   year=rep(seq(1990,2016) , each=10),
+#   name=rep(letters[1:10] , 27),
+#   value=sample( seq(0,1,0.0001) , 270)
+# )
+#  
+# # Stream graph with a legend
+# pp <- streamgraph(data, key="name", value="value", date="year", height="300px", width="1000px") %>%
+#   sg_legend(show=TRUE, label="names: ")
 ```
-
