@@ -1,0 +1,42 @@
+---
+title: "Final Viz"
+format: html
+editor: visual
+---
+
+
+```{r}
+#| eval: true
+#| echo: false
+#| warning: false
+
+# Load libraries
+library(tidyverse)
+library(here)
+library(janitor)
+library(paletteer)
+
+# Read in data
+kelp_central <- read_csv(here("data", "central_california_kelp.csv"))
+kelp_north <- read_csv(here("data", "northern_california_kelp.csv"))
+kelp_south <- read_csv(here("data", "southern_california_kelp.csv"))
+
+# Add a column to each df that specifies its region
+kelp_central <- kelp_central %>% mutate(region = "central")
+kelp_north <- kelp_north %>% mutate(region = "northern")
+kelp_south <- kelp_south %>% mutate(region = "southern")
+
+# Bind the three dfs together
+kelp <- bind_rows(kelp_central, kelp_north, kelp_south)
+
+# Filter to just one year: 2023
+kelp_2023_south <- kelp |>
+  filter(year == 2023) |>
+  filter(region == "southern")
+```
+
+
+```{r}
+# VIZ # 1: 
+```
+

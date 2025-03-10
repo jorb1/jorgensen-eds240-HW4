@@ -105,6 +105,7 @@ print(rough_mpa)
 
 # Add inset map using viewport
 vp <- viewport(x = 0.8, y = 0.2, width = 0.3, height = 0.3, just = c("right", "bottom"))
+
 print(inset_map, vp = vp)
 
 
@@ -119,6 +120,8 @@ print(inset_map, vp = vp)
 ```{r}
 # Read in csv 
 north_kelp <- read_csv(here("data", "northern_california_kelp.csv"))
+central_kelp <- read_csv(here("data", "central_california_kelp.csv"))
+south_kelp <- read_csv(here("data", "southern_california_kelp.csv"))
 
 north_plot <- ggplot(na.omit(north_kelp), aes(x = year, y = log1p(kelp_area_m2), color = quarter, group = quarter)) +
   geom_line(size = 1.2) +  # Increase line thickness
@@ -150,3 +153,116 @@ north_plot
 # pp <- streamgraph(data, key="name", value="value", date="year", height="300px", width="1000px") %>%
 #   sg_legend(show=TRUE, label="names: ")
 ```
+
+```{r}
+library(basemaps)
+```
+
+```{r}
+
+# data("ext_eur")
+# set_defaults(map_service = "carto", map_type = "light")
+# 
+# basemap_terra(ext_eur)
+
+
+```
+
+
+
+```{r}
+library(sf)
+
+# Create an sf bounding box with CRS
+california_extent <- st_as_sfc(st_bbox(c(xmin = -125, xmax = -114, ymin = 32, ymax = 42), crs = 4326))
+
+ca_basemap <- basemap(california_extent, map_service = "carto", map_type = "light")
+
+ca_basemap
+```
+
+```{r}
+# library(basemaps)
+# library(sf)
+# library(terra)
+# library(tmap)
+# library(grid)  # For viewport
+
+# # Step 1: Define the California basemap extent
+# california_extent <- st_as_sfc(st_bbox(c(xmin = -125, xmax = -114, ymin = 32, ymax = 42), crs = 4326))
+# 
+# # Step 2: Get the Esri basemap
+# ca_basemap <- basemap(california_extent, map_service = "esri", map_type = "world_ocean_base")
+# 
+# # Step 3: Convert basemap to SpatRaster for compatibility with tmap
+# ca_basemap_raster <- rast(ca_basemap)
+# 
+# # Step 4: Create the basemap in tmap
+# base_map <- tm_shape(ca_basemap_raster) +
+#   tm_rgb()  # Use tm_rgb() to properly display basemap imagery
+# 
+# # Step 5: Overlay MPAs
+# rough_mpa <- base_map +
+#   tm_shape(mpa_boundaries) +
+#   tm_polygons(col = "#71722b", alpha = 0.6, border.col = "black") +
+#   tm_layout(main.title = "California MPAs",
+#             main.title.position = "center")
+
+```
+
+```{r}
+library(ggplot2)
+library(ggspatial)
+library(sf)
+library(basemaps)
+library(ggmap)
+
+
+# Step 3: Plot basemap with ggplot
+ggplot() +
+  ggmap(ca_basemap) +
+  geom_sf(data = mpa_boundaries, fill = "hotpink", color = "black", alpha = 0.6) +  # MPAs
+  labs(title = "California MPAs") +
+  theme_minimal()
+
+```
+
+```{r}
+library(leaflet)
+library(sf)
+
+# Step 1: Create a leaflet map
+leaflet() %>%
+  # Add Esri basemap (can change to different Esri types)
+  addTiles(urlTemplate = "https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}") %>%
+  # Add MPAs layer
+  addPolygons(data = mpa_boundaries, fillColor = "#71722b", color = "black", weight = 1, opacity = 0.6)
+
+```
+
+```{r}
+tm_shape(mpa_boundaries) +
+  tm_polygons(col = "hotpink")
+```
+
+```{r}
+library(mapview)
+library(sf)
+
+# Ensure both layers are in the same CRS (EPSG:4326)
+mpa_boundaries <- st_transform(mpa_boundaries, crs = 4326)
+
+# Plot the basemap with MPA boundaries
+mapview(ca_basemap, alpha.regions = 1) + 
+  mapview(mpa_boundaries, 
+          color = "red", 
+          alpha.regions = 0,  # Transparent fill
+          lwd = 2)  # Line width
+```
+
+
+
+
+
+
+

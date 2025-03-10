@@ -10,7 +10,7 @@ editor: visual
 #| echo: false
 
 # Load libraries
-librarian::shelf(tidyverse, tidync, sf, rnaturalearth, terra, tmap, tmaptools, spData, mapdata, RColorBrewer, here, janitor)a
+librarian::shelf(tidyverse, tidync, sf, rnaturalearth, terra, tmap, tmaptools, spData, mapdata, RColorBrewer, here, janitor)
 ```
 
 
@@ -42,6 +42,11 @@ kelp_latlon <- left_join(kelp_lat, kelp_lon, by = "station") %>%
   # Reproject to linear units (NAD UTM 10)
   st_transform(crs = 26910)
 ```
+
+```{r}
+names(mpa_boundaries)
+```
+
 
 ```{r}
 # Now, lets work with the MPAs data...
@@ -140,6 +145,13 @@ for (yr in years) {
   
 }
 ```
+```{r}
+kelp_2024 <- rast(here("data", "kelp_canopy_2024.tif"))
+
+plot(kelp_2024)
+```
+
+
 
 
 
