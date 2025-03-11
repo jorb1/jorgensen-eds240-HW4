@@ -223,28 +223,17 @@ ggplot(kelp_line_thru_time, aes(x = year, y = kelp_area_m2)) +
 ```{r}
 # VIZ 3:
 # Map
-tm_shape(islands) +
-  tm_dots(col = "seagreen3") +
-  tm_grid(
-    n.x = 4,  # Reduce number of longitude lines
-    n.y = 4,  # Reduce number of latitude lines
-    labels.format = list(fun = function(x) paste0(round(x, 2), "°")),  # Add degree symbol
-    labels.size = 0.7,  # Slightly reduce label size for clarity
-    col = "gray50",  # Grid line color
-    labels.col = "gray50"  # Grid label color (white for visibility on black)
-  ) +
+# Transform to a geographic coordinate system if needed
+islands_geo <- st_transform(islands, 4326)  # Transform to WGS84 (lat/long)
+
+tm_shape(islands_geo) +
+  tm_dots(col = "seagreen3",
+          fill = "seagreen3") +
+  tm_grid(labels.col = "gray") +  # Use default grid settings
   tm_layout(
-    bg.color = "black",  # Black background
-    frame = FALSE,  # Remove the frame around the map
-    panel.label.color = "white",  # White panel labels
-    panel.label.bg.color = "black",  # Black background for panel labels
-    attr.color = "white"  # White attribution text
-    #text.fontfamily = "poppins"
-  # ) +
-  # tm_title(
-  #   main.title = "A Peek at Kelp Canopy Cover at the Channel Islands",
-  #   main.title.color = "white"
-  # )
+    bg.color = "black",
+    outer.bg.color = "black"
+  ) 
 
 ```
 
