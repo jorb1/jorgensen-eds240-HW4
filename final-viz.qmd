@@ -11,15 +11,35 @@ editor: visual
 #| warning: false
 
 # Load libraries
-library(tidyverse)
-library(here)
-library(janitor)
-library(paletteer)
+librarian::shelf(tidyverse, here, janitor, waffle, showtext, scales, tidync, sf, terra, tmap, tmaptools)
 
-# Read in data
+# Import font
+font_add_google(name = "Poppins", family = "poppins")
+showtext_auto(enable = TRUE)
+
+# Define a color palette
+kelp_palette <- c("winter" = "yellowgreen", 
+                    "spring" = "seagreen1", 
+                    "summer" = "seagreen3", 
+                    "fall" = "#357266")
+
+```
+
+
+```{r}
+# Read in KelpWatch data for waffle chart and line plot
 kelp_central <- read_csv(here("data", "central_california_kelp.csv"))
 kelp_north <- read_csv(here("data", "northern_california_kelp.csv"))
 kelp_south <- read_csv(here("data", "southern_california_kelp.csv"))
+
+# Read in KelpWatch data for map
+kelpwatch_raw <- tidync(here("data", "LandsatKelpBiomass_2024_Q4_withmetadata.nc"))
+```
+
+
+```{r}
+
+# Wrangle data for waffle chart and line plot
 
 # Add a column to each df that specifies its region
 kelp_central <- kelp_central %>% mutate(region = "central")
@@ -29,14 +49,213 @@ kelp_south <- kelp_south %>% mutate(region = "southern")
 # Bind the three dfs together
 kelp <- bind_rows(kelp_central, kelp_north, kelp_south)
 
-# Filter to just one year: 2023
+# Filter to just one year: 2023, and one region
 kelp_2023_south <- kelp |>
   filter(year == 2023) |>
   filter(region == "southern")
+
+# Wrangle data for waffle chart
+waffle_kelp <- kelp_2023_south |>
+  filter(quarter != "max") |> 
+  mutate(quarter = recode(quarter,
+                          "1" = "winter",
+                          "2" = "spring",
+                          "3" = "summer",
+                          "4" = "fall"))
+
+# Wrange data from line plot 
+kelp_line_thru_time <- kelp |>
+  filter(quarter == "max") |>
+  filter(region == "southern")
+```
+
+```{r}
+# Wrangle data for map
+
+# Transform the latitude grid into a data frame
+kelp_lat <- kelpwatch_raw %>%
+  activate("latitude") %>%
+  hyper_tibble()
+
+# Transform the longitude grid into a data frame
+kelp_lon <- kelpwatch_raw %>%
+  activate("longitude") %>%
+  hyper_tibble()
+
+# Join the two geo info
+kelp_latlon <- left_join(kelp_lat, kelp_lon, by = "station") %>%
+  relocate(station, .before=everything()) %>% 
+  # Make into sf object
+  st_as_sf(coords=c("longitude", "latitude"), crs=4326, remove=FALSE) %>% 
+  # Reproject to linear units (NAD UTM 10)
+  st_transform(crs = 26910)
+
+# Transform the biomass grid into a data frame
+kelpwatch_df <- kelpwatch_raw %>%
+  hyper_tibble(force = TRUE)
+
+# Transform the time grid into a data frame
+kelp_time <- kelpwatch_raw %>% 
+  activate("year") %>% 
+  hyper_tibble()
+
+# Join the kelp data with the time grid
+kelp <- left_join(kelpwatch_df, kelp_time)
+
+# Filter the kelp data for the stations that intersect and years of interest
+kelp <- kelp %>% 
+  #filter(station %in% site_station$station) %>% 
+  filter(year == 2023)
+
+# Since we are interested in the max value only, can drop the zeroes 
+kelp_present <- kelp %>% 
+  filter(!(area == 0)) %>% 
+  filter(!is.na(area)) %>% 
+  dplyr::select(station, year, area)
+
+# Calculate annual max
+kelp_annual <- kelp_present %>%
+  arrange(station, year) %>%
+  group_by(station, year, .drop = T) %>%
+  summarise_all(max, na.rm = T) 
+
+yearly_data <- left_join(kelp_annual, kelp_latlon) |> 
+  st_as_sf()
+
+# Define the bounding box for the Channel Islands area (approximate)
+channel_islands_bbox <- st_bbox(c(xmin = -120.5, ymin = 33.9, xmax = -119.5, ymax = 34.1), crs = st_crs(4326))
+
+# Convert bounding box to an sf object
+channel_islands_polygon <- st_as_sfc(channel_islands_bbox) |>
+  st_transform(channel_islands_polygon, crs = st_crs(yearly_data))
+
+# Filter the geospatial data to include only points within the Channel Islands area
+islands <- yearly_data %>%
+  st_intersection(channel_islands_polygon)
+  
 ```
 
 
 ```{r}
-# VIZ # 1: 
+# VIZ 1:
+
+# Create plot labels
+title <- "Kelp Coverage Changes Dramatically by Season"
+subtitle <- "SoCal Kelp Canopy Visible from Space in 2023"
+caption <- "Source: KelpWatch"
+
+# Factorize seasons so they plot in order in legend
+waffle_kelp$quarter <- factor(waffle_kelp$quarter, 
+                             levels = c("winter", "spring", "summer", "fall"))
+
+#......................create waffle chart.......................
+ggplot(waffle_kelp, aes(fill = quarter, values = kelp_area_m2)) +
+  geom_waffle(color = "black", size = 0.3, n_rows = 5,
+              make_proportional = TRUE) +
+  coord_fixed() +
+  scale_fill_manual(values = kelp_palette) +
+  labs(title = title,
+       subtitle = subtitle,
+       caption = caption) +
+  theme_void() +
+  theme(
+    plot.title = element_text(family = "poppins",
+                              color = "white",
+                              size = 17, 
+                              hjust = 0.5,
+                              margin = margin(t = 0, r = 0, b = 0.3, l = 0, "cm")),
+    plot.subtitle = element_text(family = "poppins",
+                                 color = "white",
+                                 size = 16,
+                                 hjust = 0.5,
+                                 margin = margin(t = 0, r = 0, b = 0.5, l = 0, "cm")),
+    plot.caption = element_text(family = "poppins",
+                                size = 10,
+                                color = "gray", 
+                                margin = margin(t = 0.75, r = 0, b = 0, l = 0, "cm")),
+    legend.position = "bottom",
+    legend.title = element_blank(),
+    legend.text = element_text(family = "poppins",
+                               size = 12,
+                               color = "gray"),
+    plot.background = element_rect(fill = "black", 
+                                   color = "black"),
+    plot.margin = margin(t = 2, r = 2, b = 2, l = 2, "cm")
+  )
 ```
+
+
+```{r}
+# VIZ 2
+
+# Function to format numbers with "million" suffix
+format_million <- function(x) {
+  paste0(comma(x / 1e6), " million m²")
+}
+
+ggplot(kelp_line_thru_time, aes(x = year, y = kelp_area_m2)) +
+  geom_line(color = "seagreen3", size = 1.5) + 
+  geom_point(color = "yellowgreen", size = 2) +
+  theme_minimal() +
+  theme(
+    # Set aspect ratio
+    aspect.ratio = 1/5,
+    
+    # Remove axis titles
+    axis.title.y = element_blank(),
+    axis.title.x = element_blank(),
+    
+    # Set panel and plot background to black
+    panel.background = element_rect(fill = "black", color = NA),
+    plot.background = element_rect(fill = "black", color = NA),
+    
+    # Set text elements to white
+    text = element_text(color = "white"),
+    axis.text = element_text(color = "white"),
+    
+    # Set grid lines to dark gray or remove them
+    panel.grid.major = element_line(color = "gray30"),
+    panel.grid.minor = element_line(color = "gray20")
+  ) +
+  scale_y_continuous(labels = format_million)
+```
+
+```{r}
+# VIZ 3:
+# Map
+tm_shape(islands) +
+  tm_dots(col = "seagreen3") +
+  tm_grid(
+    n.x = 4,  # Reduce number of longitude lines
+    n.y = 4,  # Reduce number of latitude lines
+    labels.format = list(fun = function(x) paste0(round(x, 2), "°")),  # Add degree symbol
+    labels.size = 0.7,  # Slightly reduce label size for clarity
+    col = "gray50",  # Grid line color
+    labels.col = "gray50"  # Grid label color (white for visibility on black)
+  ) +
+  tm_layout(
+    bg.color = "black",  # Black background
+    frame = FALSE,  # Remove the frame around the map
+    panel.label.color = "white",  # White panel labels
+    panel.label.bg.color = "black",  # Black background for panel labels
+    attr.color = "white"  # White attribution text
+    #text.fontfamily = "poppins"
+  # ) +
+  # tm_title(
+  #   main.title = "A Peek at Kelp Canopy Cover at the Channel Islands",
+  #   main.title.color = "white"
+  # )
+
+```
+
+
+
+
+
+
+
+
+
+
+
 
