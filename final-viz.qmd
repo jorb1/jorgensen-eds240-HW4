@@ -23,10 +23,6 @@ kelp_palette <- c("winter" = "yellowgreen",
                     "summer" = "seagreen3", 
                     "fall" = "#357266")
 
-```
-
-
-```{r}
 # Read in KelpWatch data for waffle chart and line plot
 kelp_central <- read_csv(here("data", "central_california_kelp.csv"))
 kelp_north <- read_csv(here("data", "northern_california_kelp.csv"))
@@ -34,10 +30,7 @@ kelp_south <- read_csv(here("data", "southern_california_kelp.csv"))
 
 # Read in KelpWatch data for map
 kelpwatch_raw <- tidync(here("data", "LandsatKelpBiomass_2024_Q4_withmetadata.nc"))
-```
 
-
-```{r}
 
 # Wrangle data for waffle chart and line plot
 
@@ -67,56 +60,54 @@ waffle_kelp <- kelp_2023_south |>
 kelp_line_thru_time <- kelp |>
   filter(quarter == "max") |>
   filter(region == "southern")
-```
 
-```{r}
 # Wrangle data for map
 
 # Transform the latitude grid into a data frame
-kelp_lat <- kelpwatch_raw %>%
-  activate("latitude") %>%
+kelp_lat <- kelpwatch_raw |> 
+  activate("latitude") |> 
   hyper_tibble()
 
 # Transform the longitude grid into a data frame
-kelp_lon <- kelpwatch_raw %>%
-  activate("longitude") %>%
+kelp_lon <- kelpwatch_raw |> 
+  activate("longitude") |> 
   hyper_tibble()
 
 # Join the two geo info
-kelp_latlon <- left_join(kelp_lat, kelp_lon, by = "station") %>%
-  relocate(station, .before=everything()) %>% 
+kelp_latlon <- left_join(kelp_lat, kelp_lon, by = "station") |> 
+  relocate(station, .before=everything()) |> 
   # Make into sf object
-  st_as_sf(coords=c("longitude", "latitude"), crs=4326, remove=FALSE) %>% 
+  st_as_sf(coords=c("longitude", "latitude"), crs=4326, remove=FALSE) |> 
   # Reproject to linear units (NAD UTM 10)
   st_transform(crs = 26910)
 
 # Transform the biomass grid into a data frame
-kelpwatch_df <- kelpwatch_raw %>%
+kelpwatch_df <- kelpwatch_raw |> 
   hyper_tibble(force = TRUE)
 
 # Transform the time grid into a data frame
-kelp_time <- kelpwatch_raw %>% 
-  activate("year") %>% 
+kelp_time <- kelpwatch_raw |>  
+  activate("year") |>  
   hyper_tibble()
 
 # Join the kelp data with the time grid
 kelp <- left_join(kelpwatch_df, kelp_time)
 
 # Filter the kelp data for the stations that intersect and years of interest
-kelp <- kelp %>% 
+kelp <- kelp |> 
   #filter(station %in% site_station$station) %>% 
   filter(year == 2023)
 
 # Since we are interested in the max value only, can drop the zeroes 
-kelp_present <- kelp %>% 
-  filter(!(area == 0)) %>% 
-  filter(!is.na(area)) %>% 
+kelp_present <- kelp |> 
+  filter(!(area == 0)) |>  
+  filter(!is.na(area)) |>  
   dplyr::select(station, year, area)
 
 # Calculate annual max
-kelp_annual <- kelp_present %>%
-  arrange(station, year) %>%
-  group_by(station, year, .drop = T) %>%
+kelp_annual <- kelp_present |> 
+  arrange(station, year) |> 
+  group_by(station, year, .drop = T) |> 
   summarise_all(max, na.rm = T) 
 
 yearly_data <- left_join(kelp_annual, kelp_latlon) |> 
@@ -130,13 +121,10 @@ channel_islands_polygon <- st_as_sfc(channel_islands_bbox) |>
   st_transform(channel_islands_polygon, crs = st_crs(yearly_data))
 
 # Filter the geospatial data to include only points within the Channel Islands area
-islands <- yearly_data %>%
+islands <- yearly_data |> 
   st_intersection(channel_islands_polygon)
   
-```
 
-
-```{r}
 # VIZ 1:
 
 # Create plot labels
@@ -148,8 +136,8 @@ caption <- "Source: KelpWatch"
 waffle_kelp$quarter <- factor(waffle_kelp$quarter, 
                              levels = c("winter", "spring", "summer", "fall"))
 
-#......................create waffle chart.......................
-ggplot(waffle_kelp, aes(fill = quarter, values = kelp_area_m2)) +
+# Create a waffle chart
+wafflechart_tasty <- ggplot(waffle_kelp, aes(fill = quarter, values = kelp_area_m2)) +
   geom_waffle(color = "black", size = 0.3, n_rows = 5,
               make_proportional = TRUE) +
   coord_fixed() +
@@ -159,20 +147,20 @@ ggplot(waffle_kelp, aes(fill = quarter, values = kelp_area_m2)) +
        caption = caption) +
   theme_void() +
   theme(
-    plot.title = element_text(family = "poppins",
-                              color = "white",
-                              size = 17, 
-                              hjust = 0.5,
-                              margin = margin(t = 0, r = 0, b = 0.3, l = 0, "cm")),
-    plot.subtitle = element_text(family = "poppins",
-                                 color = "white",
-                                 size = 16,
-                                 hjust = 0.5,
-                                 margin = margin(t = 0, r = 0, b = 0.5, l = 0, "cm")),
-    plot.caption = element_text(family = "poppins",
-                                size = 10,
-                                color = "gray", 
-                                margin = margin(t = 0.75, r = 0, b = 0, l = 0, "cm")),
+    # plot.title = element_text(family = "poppins",
+    #                           color = "white",
+    #                           size = 17, 
+    #                           hjust = 0.5,
+    #                           margin = margin(t = 0, r = 0, b = 0.3, l = 0, "cm")),
+    # plot.subtitle = element_text(family = "poppins",
+    #                              color = "white",
+    #                              size = 16,
+    #                              hjust = 0.5,
+    #                              margin = margin(t = 0, r = 0, b = 0.5, l = 0, "cm")),
+    # plot.caption = element_text(family = "poppins",
+    #                             size = 10,
+    #                             color = "gray", 
+    #                             margin = margin(t = 0.75, r = 0, b = 0, l = 0, "cm")),
     legend.position = "bottom",
     legend.title = element_blank(),
     legend.text = element_text(family = "poppins",
@@ -182,10 +170,7 @@ ggplot(waffle_kelp, aes(fill = quarter, values = kelp_area_m2)) +
                                    color = "black"),
     plot.margin = margin(t = 2, r = 2, b = 2, l = 2, "cm")
   )
-```
 
-
-```{r}
 # VIZ 2
 
 # Function to format numbers with "million" suffix
@@ -193,7 +178,7 @@ format_million <- function(x) {
   paste0(comma(x / 1e6), " million m²")
 }
 
-ggplot(kelp_line_thru_time, aes(x = year, y = kelp_area_m2)) +
+lineplot_kelp_time_final <- ggplot(kelp_line_thru_time, aes(x = year, y = kelp_area_m2)) +
   geom_line(color = "seagreen3", size = 1.5) + 
   geom_point(color = "yellowgreen", size = 2) +
   theme_minimal() +
@@ -210,23 +195,23 @@ ggplot(kelp_line_thru_time, aes(x = year, y = kelp_area_m2)) +
     plot.background = element_rect(fill = "black", color = NA),
     
     # Set text elements to white
-    text = element_text(color = "white"),
-    axis.text = element_text(color = "white"),
+    text = element_text(family = "poppins", color = "white"),
+    axis.text = element_text(family = "poppins", color = "white"),
+    # Set text elements to Poppins font
+    
     
     # Set grid lines to dark gray or remove them
     panel.grid.major = element_line(color = "gray30"),
     panel.grid.minor = element_line(color = "gray20")
   ) +
   scale_y_continuous(labels = format_million)
-```
 
-```{r}
 # VIZ 3:
 # Map
 # Transform to a geographic coordinate system if needed
 islands_geo <- st_transform(islands, 4326)  # Transform to WGS84 (lat/long)
 
-tm_shape(islands_geo) +
+map_notitle <- tm_shape(islands_geo) +
   tm_dots(col = "seagreen3",
           fill = "seagreen3") +
   tm_grid(labels.col = "gray") +  # Use default grid settings
@@ -235,6 +220,8 @@ tm_shape(islands_geo) +
     outer.bg.color = "black"
   ) 
 
+
+map_notitle
 ```
 
 
