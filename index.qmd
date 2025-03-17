@@ -247,7 +247,7 @@ lineplot_kelp_time_final <- ggplot(kelp_line_thru_time, aes(x = year, y = kelp_a
 # VIZ 3:
 # Map
 # Transform
-islands_geo <- st_transform(islands, 4326)  # Transform to WGS84 (lat/long)
+islands_geo <- st_transform(islands, 4326)  # Transform to WGS84
 
 map_notitle <- tm_shape(islands_geo) +
   tm_dots(col = "seagreen3",
