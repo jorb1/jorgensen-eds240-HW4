@@ -4,7 +4,6 @@ format: html
 editor: visual
 ---
 
-
 ```{r}
 #| eval: true
 #| echo: false
@@ -125,6 +124,9 @@ islands <- yearly_data |>
   st_intersection(channel_islands_polygon)
   
 
+```
+
+```{r}
 # VIZ 1:
 
 # Create plot labels
@@ -138,7 +140,7 @@ waffle_kelp$quarter <- factor(waffle_kelp$quarter,
 
 # Create a waffle chart
 wafflechart_tasty <- ggplot(waffle_kelp, aes(fill = quarter, values = kelp_area_m2)) +
-  geom_waffle(color = "black", size = 0.3, n_rows = 5,
+  geom_waffle(color = "white", size = 0.3, n_rows = 5,
               make_proportional = TRUE) +
   coord_fixed() +
   scale_fill_manual(values = kelp_palette) +
@@ -164,13 +166,18 @@ wafflechart_tasty <- ggplot(waffle_kelp, aes(fill = quarter, values = kelp_area_
     legend.position = "bottom",
     legend.title = element_blank(),
     legend.text = element_text(family = "poppins",
-                               size = 12,
+                               size = 18,
                                color = "gray"),
     plot.background = element_rect(fill = "black", 
                                    color = "black"),
     plot.margin = margin(t = 2, r = 2, b = 2, l = 2, "cm")
   )
 
+wafflechart_tasty
+```
+
+
+```{r}
 # VIZ 2
 
 # Function to format numbers with "million" suffix
@@ -195,8 +202,8 @@ lineplot_kelp_time_final <- ggplot(kelp_line_thru_time, aes(x = year, y = kelp_a
     plot.background = element_rect(fill = "black", color = NA),
     
     # Set text elements to white
-    text = element_text(family = "poppins", color = "white"),
-    axis.text = element_text(family = "poppins", color = "white"),
+    text = element_text(family = "poppins", color = "white", size = 20),
+    axis.text = element_text(family = "poppins", color = "white", size = 20),
     # Set text elements to Poppins font
     
     
@@ -204,8 +211,30 @@ lineplot_kelp_time_final <- ggplot(kelp_line_thru_time, aes(x = year, y = kelp_a
     panel.grid.major = element_line(color = "gray30"),
     panel.grid.minor = element_line(color = "gray20")
   ) +
-  scale_y_continuous(labels = format_million)
+  scale_y_continuous(labels = format_million) +
+  annotate(
+    geom = "text",
+    x = 2009, y = 35000000,
+    label = "max extent 2005",
+    hjust = "left",
+    size = 7,
+    color = "white"
+  ) +
+  annotate(
+    geom = "curve",
+    x = 2008.8, xend = 2005.2,
+    y = 35000000, yend = 39000000,
+    curvature = -0.15,
+    arrow = arrow(length = unit(0.3, "cm")),
+    color = "white",
+    linewidth = 1
+  )
 
+lineplot_kelp_time_final
+```
+
+
+```{r}
 # VIZ 3:
 # Map
 # Transform to a geographic coordinate system if needed
@@ -214,24 +243,14 @@ islands_geo <- st_transform(islands, 4326)  # Transform to WGS84 (lat/long)
 map_notitle <- tm_shape(islands_geo) +
   tm_dots(col = "seagreen3",
           fill = "seagreen3") +
-  tm_grid(labels.col = "gray") +  # Use default grid settings
+  #tm_grid(labels.col = "gray") +  # Use default grid settings
   tm_layout(
     bg.color = "black",
     outer.bg.color = "black"
-  ) 
-
+  ) +
+  tm_compass(type = "4star", position = c("left", "bottom"),
+             color.dark = "seagreen3",
+             color.light = "white")  # Add a compass
 
 map_notitle
 ```
-
-
-
-
-
-
-
-
-
-
-
-
