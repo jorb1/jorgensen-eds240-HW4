@@ -323,7 +323,7 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <span id="cb1-199"><a href="#cb1-199" aria-hidden="true" tabindex="-1"></a><span class="co"># VIZ 3:</span></span>
 <span id="cb1-200"><a href="#cb1-200" aria-hidden="true" tabindex="-1"></a><span class="co"># Map</span></span>
 <span id="cb1-201"><a href="#cb1-201" aria-hidden="true" tabindex="-1"></a><span class="co"># Transform</span></span>
-<span id="cb1-202"><a href="#cb1-202" aria-hidden="true" tabindex="-1"></a>islands_geo <span class="ot">&lt;-</span> <span class="fu">st_transform</span>(islands, <span class="dv">4326</span>)  <span class="co"># Transform to WGS84 (lat/long)</span></span>
+<span id="cb1-202"><a href="#cb1-202" aria-hidden="true" tabindex="-1"></a>islands_geo <span class="ot">&lt;-</span> <span class="fu">st_transform</span>(islands, <span class="dv">4326</span>)  <span class="co"># Transform to WGS84</span></span>
 <span id="cb1-203"><a href="#cb1-203" aria-hidden="true" tabindex="-1"></a></span>
 <span id="cb1-204"><a href="#cb1-204" aria-hidden="true" tabindex="-1"></a>map_notitle <span class="ot">&lt;-</span> <span class="fu">tm_shape</span>(islands_geo) <span class="sc">+</span></span>
 <span id="cb1-205"><a href="#cb1-205" aria-hidden="true" tabindex="-1"></a>  <span class="fu">tm_dots</span>(<span class="at">col =</span> <span class="st">"seagreen3"</span>,</span>
