@@ -20,7 +20,7 @@ KelpWatch has extensive data you can download directly from their [website](http
 
 But, as I experienced when trying to create this visualization, actually seeing and measuring this kelp canopy is not as easy as it sounds. How, you might ask? Well, let me cut to the chase and show you my final infographic:
 
-![](data/final_viz_lonnnnggg.png){fig-alt="An infographic, with big bold white letters on a black background, describing how while it is possible to see kelp canopy from space, the variability of the kelp by season necessitates seasonal averaging for analyzing broader trends in coverage over time, and if working with maximum extent of coverage, summer is likely the season being observed."}
+![](data/final-viz-long.png){fig-alt="An infographic, with big bold white letters on a black background, describing how while it is possible to see kelp canopy from space, the variability of the kelp by season necessitates seasonal averaging for analyzing broader trends in coverage over time, and if working with maximum extent of coverage, summer is likely the season being observed."}
 
 This infographic tells a story. Most importantly, it tells the story of how kelp canopy is measured using remote sensing. But, it also tells the story of my own struggles wrangling this dataset.
 
